@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.newrobot;
 
-import com.qualcomm.ftccommon.SoundPlayer;
+import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import java.text.NumberFormat;
+
 
 /**
  * Control Hub Hardware Profile:
@@ -48,6 +49,9 @@ import java.text.NumberFormat;
 @TeleOp(name="Test_Code_Do_Not_Use",group="Test_Group")
 public class Main_TeleOp_Test extends LinearOpMode {
 
+//    @TeleOp(name="Drive Training",group="Training")
+//    public class Training_Driving_Only extends LinearOpMode {
+
     // DriveTrain Hardware Variables
     private DcMotorEx motorRightForward;
     private DcMotorEx motorRightRear;
@@ -79,6 +83,7 @@ public class Main_TeleOp_Test extends LinearOpMode {
     private double servoFlipperEndingAngle = 0.7;
     private int SERVO_FLIPPER_TRAVEL_TIME = 250;
     double adjustFocusPower = 0.5;
+    Timer distanceTimer = new Timer();
 
     // LimeLight Variables
     private Limelight3A limelight;
@@ -167,7 +172,7 @@ public class Main_TeleOp_Test extends LinearOpMode {
     }
 
     private void changeTeamColor(Limelight3A limelight) {
-        if (gamepad1.xWasPressed()) {
+        if (gamepad1.bWasPressed()) {
             if (teamColor == 8) {
                 teamColor = 9;
             } else {
@@ -202,6 +207,10 @@ public class Main_TeleOp_Test extends LinearOpMode {
         // Get distance in inches from April Tag.  Distance returns in CMs, and the / 2.54 converts it into Inches
         distance = aprilTag.getDistance(limelight, imu) / 2.54;
 
+        if (distance != 0.0) {
+            distanceTimer.resetTimer();
+        }
+
         if (gamepad1.xWasPressed()) {
             flywheelTargetVelocity -= 50;
         }
@@ -210,7 +219,7 @@ public class Main_TeleOp_Test extends LinearOpMode {
         }
 
 ////        Determine flywheels target velocity based on distance
-//        if (0.0 == distance) {
+//        if (0.0 == distance && distanceTimer.getElapsedTimeSeconds() > 3.0) {
 //            flywheelTargetVelocity = 0.0;
 //        } else if (20.0 <= distance && distance < 40.0) {
 //            flywheelTargetVelocity = 1300;
@@ -240,8 +249,8 @@ public class Main_TeleOp_Test extends LinearOpMode {
 
         // User ready to launch artifact at goal
 //        if (gamepad1.aWasPressed() && gamepad1.leftBumperWasPressed() || gamepad2.aWasPressed()) {
-            if (gamepad1.aWasPressed()) {
-            if (distance == 0.0) {
+        if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
+            if (distance == 0.0 && distanceTimer.getElapsedTimeSeconds() > 3.0) {
                 gamepad1.rumbleBlips(3);
             } else {
                 motorMainFlywheel.setVelocity(flywheelTargetVelocity);  // Command the motor to run at the current target velocity.

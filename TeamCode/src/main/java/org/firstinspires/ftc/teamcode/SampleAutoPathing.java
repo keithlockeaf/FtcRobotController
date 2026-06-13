@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
+@SuppressWarnings({"FieldMayBeFinal","FieldCanBeLocal"})
 @Autonomous
 public class SampleAutoPathing extends OpMode {
 
@@ -57,7 +58,7 @@ public class SampleAutoPathing extends OpMode {
                 // and check that 5 seconds have elapsed
                 if(!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 5) {
                     // ToDo add logic to flywheel shooter
-                    follower.followPath(driveStartToShootPos, true);
+                    follower.followPath(driveShootPosEndPos, true);
                     setPathState(PathState.DRIVE_SHOOTPOS_ENDPOS );
                     telemetry.addLine("Done Path 1");
                 }

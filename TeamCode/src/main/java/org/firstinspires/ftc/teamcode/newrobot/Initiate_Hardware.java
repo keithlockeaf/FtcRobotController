@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.ServoControllerEx;
 
 public class Initiate_Hardware {
 
-    DcMotorEx initMotor(
+    public DcMotorEx initMotor(
             HardwareMap hwMap,
             String motorHardwareName,
             String motorDirection,
@@ -34,7 +34,7 @@ public class Initiate_Hardware {
 
 //        Default ZeroPowerBehavior is FLOAT
         if (breakBehavior.equalsIgnoreCase("Break")) {
-            motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            motor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         }
 
 //        If useEncoder is set to true
@@ -67,7 +67,7 @@ public class Initiate_Hardware {
         return motor;
     }
 
-    Servo initServo(
+    public Servo initServo(
             HardwareMap hwMap,
             String servoHardwareName,
             double servoStartingAngle
@@ -77,7 +77,7 @@ public class Initiate_Hardware {
         return servo;
     }
 
-    Limelight3A initLimelight(
+    public Limelight3A initLimelight(
             HardwareMap hwMap,
             String limelightHardwareName,
             int pipelineIndexToUse
@@ -87,7 +87,7 @@ public class Initiate_Hardware {
         return limelight;
     }
 
-    IMU initIMU(
+    public IMU initIMU(
             HardwareMap hwMap,
             String imuDeviceName,
             String logoFacingDirection,

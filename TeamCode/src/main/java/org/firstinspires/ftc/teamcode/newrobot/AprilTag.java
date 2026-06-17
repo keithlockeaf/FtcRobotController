@@ -13,7 +13,7 @@ public class AprilTag {
     double scale = 166.8733;
     double power = -0.5951379;
 
-    double getDistance(
+    public double getDistance(
             Limelight3A limelight,
             IMU imu
     ) {

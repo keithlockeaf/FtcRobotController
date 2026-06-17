@@ -11,7 +11,6 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import java.text.NumberFormat;
 
-
 /**
  * Control Hub Hardware Profile:
  *   Hardware Variables:
@@ -58,10 +57,8 @@ public class Training_Driving_Only extends LinearOpMode {
     private DcMotorEx motorLeftForward;
     private DcMotorEx motorLeftRear;
 
-    // User Power Customisation for the DriveTrain
-    private boolean lbWasPressed = false;
-    private boolean rbWasPressed = false;
-    private double driveTrainPowerCustomisation = 0.5;
+    // Starting user power for the DriveTrain
+    private double customDriveTrainPower = 0.8;
 
     // Artifact Intake Counter Variables
     private DigitalChannel sensorLaserDistance;
@@ -79,26 +76,18 @@ public class Training_Driving_Only extends LinearOpMode {
     double flywheelTargetVelocity = 1300;
     double F = 14.098; // Feedforward gain to counteract constant forces like friction.
     double P = 265;    // Proportional gain to correct error based on how far off the velocity is.
-    private double servoFlipperStartingAngle = 0.93;
-    private double servoFlipperEndingAngle = 0.7;
+    private double SERVO_FLIPPER_STARTING_ANGLE = 0.93;
+    private double SERVO_FLIPPER_ENDING_ANGLE = 0.7;
     private int SERVO_FLIPPER_TRAVEL_TIME = 250;
-    double adjustFocusPower = 0.5;
+    double DPAD_ROTATE_POWER = 0.5;
     Timer distanceTimer = new Timer();
+    double DISTANCE_TIMEOUT_SECONDS = 3;
 
     // LimeLight Variables
     private Limelight3A limelight;
     private IMU imu;
     private double distance;
     private int teamColor = 8;  // Default is 8 which is RED, 9 is BLUE.  The numbers correspond to the limelight index to use for each april tag color.
-
-
-
-
-
-
-
-
-
 
     AprilTag aprilTag = new AprilTag();
     DriveTrain driveTrain = new DriveTrain();
@@ -110,8 +99,8 @@ public class Training_Driving_Only extends LinearOpMode {
         initHardware();
         while (!isStarted()) {
             setUserDrivetrainPower();
-            setUserDrivetrainPowerTelemetry();
             changeTeamColor(limelight);
+            initTelemetry();
         }
         waitForStart();
         limelight.start();
@@ -141,7 +130,7 @@ public class Training_Driving_Only extends LinearOpMode {
         motorArtifactIntake = initHardware.initMotor(hardwareMap,"motor_artifact_intake", "REVERSE", "FLOAT", false);
         motorMainFlywheel = initHardware.initMotor(hardwareMap,"motor_main_flywheel", "FORWARD", "FLOAT", true);
         // motorAuxFlywheel = initHardware.initMotor(hardwareMap,"motor_aux_flywheel", "FORWARD", "FLOAT", true);
-        servoFlipper = initHardware.initServo(hardwareMap,"servo_flipper", servoFlipperStartingAngle);
+        servoFlipper = initHardware.initServo(hardwareMap,"servo_flipper", SERVO_FLIPPER_STARTING_ANGLE);
 
         // Initiate PIDF Coefficients and apply them to the Flywheels
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
@@ -160,20 +149,20 @@ public class Training_Driving_Only extends LinearOpMode {
     // Configure preferred custom drive train max power
     private void setUserDrivetrainPower() {
         if (gamepad1.leftBumperWasPressed()) {
-            if (driveTrainPowerCustomisation != 0) {
-                driveTrainPowerCustomisation -= 0.1;
+            if (customDriveTrainPower != 0) {
+                customDriveTrainPower -= 0.1;
             }
         }
 
         if (gamepad1.rightBumperWasPressed()) {
-            if (driveTrainPowerCustomisation != 1.0) {
-                driveTrainPowerCustomisation += 0.1;
+            if (customDriveTrainPower != 1.0) {
+                customDriveTrainPower += 0.1;
             }
         }
     }
 
     private void changeTeamColor(Limelight3A limelight) {
-        if (gamepad1.bWasPressed()) {
+        if (gamepad1.aWasPressed()) {
             if (teamColor == 8) {
                 teamColor = 9;
             } else {
@@ -188,7 +177,10 @@ public class Training_Driving_Only extends LinearOpMode {
         forward = gamepad1.left_stick_y;
         strafe = gamepad1.left_stick_x;
         rotate = gamepad1.right_stick_x;
-        driveTrain.drive(motorRightForward, motorRightRear, motorLeftForward, motorLeftRear, forward, strafe, rotate, driveTrainPowerCustomisation);
+        driveTrain.drive(motorRightForward, motorRightRear, motorLeftForward, motorLeftRear, forward, strafe, rotate, customDriveTrainPower);
+        if (forward + strafe + rotate != 0.0) {
+            motorMainFlywheel.setVelocity(0);
+        }
 
         // Count the number of artifact that have been consumed since last shooting
         boolean artifactDetected = sensorLaserDistance.getState();
@@ -220,48 +212,57 @@ public class Training_Driving_Only extends LinearOpMode {
 //        }
 
 //        Determine flywheels target velocity based on distance
-        if (distanceTimer.getElapsedTimeSeconds() > 3.0) {
+        if (0.0 == distance && distanceTimer.getElapsedTimeSeconds() > 3.0) {
             flywheelTargetVelocity = 0.0;
-        } else if (20.0 <= distance && distance < 40.0) {
+        } else if (20.0 <= distance && distance < 30.0) {
             flywheelTargetVelocity = 1300;
-        } else if (40.0 <= distance && distance < 50.0) {
+        } else if (30.0 <= distance && distance < 40.0) {
             flywheelTargetVelocity = 1400;
-        } else if (50.0 <= distance && distance < 70.0) {
-            flywheelTargetVelocity = 1450;
-//        } else if (60.0 <= distance && distance < 70.0) {
-//            flywheelTargetVelocity = 1400;
+        } else if (40.0 <= distance && distance < 50.0) {
+            flywheelTargetVelocity = 1500;
+        } else if (50.0 <= distance && distance < 60.0) {
+            flywheelTargetVelocity = 1550;
+        } else if (60.0 <= distance && distance < 70.0) {
+            flywheelTargetVelocity = 1650;
+        } else if (70.0 <= distance ) {
+            flywheelTargetVelocity = 1700;
         }
 
         // D-pad left/right adjusts the angle of the robot at small increments
         if (gamepad1.dpadLeftWasPressed()) {
-            motorLeftRear.setPower(adjustFocusPower);
-            motorRightRear.setPower(-adjustFocusPower);
+            motorLeftRear.setPower(DPAD_ROTATE_POWER);
+            motorRightRear.setPower(-DPAD_ROTATE_POWER);
             sleep(200);
             motorLeftRear.setPower(0);
             motorRightRear.setPower(0);
         }
         if (gamepad1.dpadRightWasPressed()) {
-            motorLeftRear.setPower(-adjustFocusPower);
-            motorRightRear.setPower(adjustFocusPower);
+            motorLeftRear.setPower(-DPAD_ROTATE_POWER);
+            motorRightRear.setPower(DPAD_ROTATE_POWER);
             sleep(200);
             motorLeftRear.setPower(0);
             motorRightRear.setPower(0);
         }
 
         // User ready to launch artifact at goal
-//        if (gamepad2.aWasPressed()) {
-        if (gamepad1.bWasPressed() || gamepad2.aWasPressed()) {
-            if (distanceTimer.getElapsedTimeSeconds() > 3.0) {
-                gamepad1.rumbleBlips(3);
+        // if (gamepad1.aWasPressed() && gamepad1.leftBumperWasPressed() || gamepad2.aWasPressed()) {
+        if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
+            if (distanceTimer.getElapsedTimeSeconds() > DISTANCE_TIMEOUT_SECONDS) {
+//                gamepad1.rumbleBlips(3);
+                gamepad1.rumble(3000);
             } else {
+                driveTrain.drive(motorRightForward, motorRightRear, motorLeftForward, motorLeftRear, 0.0, 0.0, 0.0, customDriveTrainPower);
                 motorMainFlywheel.setVelocity(flywheelTargetVelocity);  // Command the motor to run at the current target velocity.
+//                if (motorMainFlywheel.getVelocity() > flywheelTargetVelocity - 200) {
+//                    sleep(100);  // Give the flywheel 1 second to spin up to target velocity
+//                }
                 sleep(1000);  // Give the flywheel 1 second to spin up to target velocity
                 motorArtifactIntake.setPower(1);  // Activate artifact intake motor to push any artifacts towards launch servo
                 sleep(250);  // Only run the artifact intake motor for .25 seconds
                 shootArtifact();  // Start artifact firing sequence
 //                sleep(1000);  // Give the flywheel 1 second to continue to spin at target velocity before turning off power
                 artifactIntakeCount = 0;  // Reset artifact count
-                motorMainFlywheel.setVelocity(0);  // Turn off Main flywheel
+//                motorMainFlywheel.setVelocity(0);  // Turn off Main flywheel
             }
         }
     }
@@ -269,16 +270,16 @@ public class Training_Driving_Only extends LinearOpMode {
     // Artifact launch sequence
     private void shootArtifact() {
         motorArtifactIntake.setPower(0);
-        servoFlipper.setPosition(servoFlipperEndingAngle);  // Use the servo arm to lift the artifact up to the main flywheel
+        servoFlipper.setPosition(SERVO_FLIPPER_ENDING_ANGLE);  // Use the servo arm to lift the artifact up to the main flywheel
         sleep(SERVO_FLIPPER_TRAVEL_TIME);  // Time it takes for the servo to fully lift the artifact
-        servoFlipper.setPosition(servoFlipperStartingAngle);  // Reset the servo arm to its starting position
+        servoFlipper.setPosition(SERVO_FLIPPER_STARTING_ANGLE);  // Reset the servo arm to its starting position
         sleep(SERVO_FLIPPER_TRAVEL_TIME);  // Time it takes for the servo to fully lift the artifact
         motorArtifactIntake.setPower(1);  // Activate the artifact intake motor to move any artifacts further into the robot
         sleep(250);
     }
 
     // Allows the user to set their preferred drivetrain power
-    private void setUserDrivetrainPowerTelemetry() {
+    private void initTelemetry() {
         NumberFormat percentFormatter = NumberFormat.getPercentInstance();
         percentFormatter.setMaximumFractionDigits(0); // e.g., 2 decimal places
 
@@ -287,9 +288,9 @@ public class Training_Driving_Only extends LinearOpMode {
         } else {
             telemetry.addData("Team Color", "Blue");
         }
-        telemetry.addData("Set DriveTrain Power @", percentFormatter.format(driveTrainPowerCustomisation));
-        telemetry.addData("----------------","----------------");
-        telemetry.addData("Change Team Color", "Press X");
+        telemetry.addData("Set DriveTrain Power to", percentFormatter.format(customDriveTrainPower));
+        telemetry.addData("---------------", "-------------");
+        telemetry.addData("Press A", "Change Team Color");
         telemetry.addData("Left Bumper", "Decrease DriveTrain Power by 10%");
         telemetry.addData("Right Bumper", "Increase DriveTrain Power by 10%");
         telemetry.update();
@@ -298,9 +299,9 @@ public class Training_Driving_Only extends LinearOpMode {
     // Display during teleop mode
     private void opModeTelemetry() {
         telemetry.addData("Artifact Intake Count", artifactIntakeCount);
-        if (distance == 0.0 && teamColor == 8) {
+        if (distanceTimer.getElapsedTimeSeconds() > DISTANCE_TIMEOUT_SECONDS && teamColor == 8) {
             telemetry.addData("Distance in inch", "Cannot see Red Team April tag");
-        } else if (distance == 0.0 && teamColor == 9) {
+        } else if (distanceTimer.getElapsedTimeSeconds() > DISTANCE_TIMEOUT_SECONDS  && teamColor == 9) {
             telemetry.addData("Distance in inch", "Cannot see Blue Team April tag");
         } else {
             telemetry.addData("Distance in inch", distance);
@@ -308,16 +309,15 @@ public class Training_Driving_Only extends LinearOpMode {
         telemetry.addData("Flywheel Actual Velocity", motorMainFlywheel.getVelocity());
         telemetry.addData("Flywheel Target Velocity", flywheelTargetVelocity);
         telemetry.addData("---------------", "-------------");
-        telemetry.addData("Controls", "Listed Below");
+        telemetry.addData("Button A", "Shoot");
+        telemetry.addData("D Pad Left", "Rotate left 5%");
+        telemetry.addData("D Pad Right", "Rotate right 5%");
         telemetry.addData("Left Joystick Up", "Forward");
         telemetry.addData("Left Joystick Down", "Backwards");
         telemetry.addData("Left Joystick Left", "Strafe Left");
         telemetry.addData("Left Joystick Right", "Strafe Right");
         telemetry.addData("Right Joystick Left", "Rotate Left");
         telemetry.addData("Right Joystick Right", "Rotate Right");
-        telemetry.addData("Button A", "Shoot");
-        telemetry.addData("D Pad Left", "Rotate left 5%");
-        telemetry.addData("D Pad Right", "Rotate right 5%");
         telemetry.update();
     }
 }

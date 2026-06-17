@@ -14,27 +14,28 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(10.5) // Weight of the robot in kgs.  example:  5.1
+            .mass(11) // Weight of the robot in kgs.  24.2 lbs
             ;
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
-            .rightFrontMotorName("rf")  // Update with correct motor names
-            .rightRearMotorName("rr")  // Update with correct motor names
-            .leftRearMotorName("lr")  // Update with correct motor names
-            .leftFrontMotorName("lf")  // Update with correct motor names
+            .rightFrontMotorName("motor_right_forward")  // Update with correct motor names
+            .rightRearMotorName("motor_right_rear")  // Update with correct motor names
+            .leftRearMotorName("motor_left_rear")  // Update with correct motor names
+            .leftFrontMotorName("motor_left_forward")  // Update with correct motor names
             .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .xVelocity(81.96394984928642);
             ;
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(-5)  // Update distance in inches from center of robot to dead wheel
-            .strafePodX(0.5)  // Update distance in inches from center of robot to dead wheel
+            .forwardPodY(5.5)  // Update distance in inches from center of robot to dead wheel
+            .strafePodX(2.25)  // Update distance in inches from center of robot to dead wheel
             .distanceUnit(DistanceUnit.INCH)
-            .hardwareMapName("pinpoint")
-            .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
+            .hardwareMapName("pinpoint_odometry_computer")
+            .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD)
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)  // physical test of encoder direction needed.  Follow instruction in https://www.youtube.com/watch?v=vihb2LPtSK0
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)  // physical test of encoder direction needed.  Follow instruction in https://www.youtube.com/watch?v=vihb2LPtSK0
             ;

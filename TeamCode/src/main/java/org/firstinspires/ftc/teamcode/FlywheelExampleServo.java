@@ -94,6 +94,7 @@ public class FlywheelExampleServo {
                         flywheelState = FlywheelState.IDLE;
                     }
                 }
+                break;
         }
     }
 
